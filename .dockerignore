@@ -1,0 +1,22 @@
+# ===== FILE: .dockerignore =====
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+downloads/
+outputs/
+.pytest_cache/
+.coverage
+htmlcov/
+.git/
+.gitignore
+README.md
+*.log

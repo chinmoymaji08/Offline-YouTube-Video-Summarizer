@@ -1,0 +1,159 @@
+<!-- ===== FIXED AND IMPROVED index.html ===== -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Summarizer</title>
+
+    <style>
+        /* SAME CSS AS YOUR VERSION (NO CHANGES) */
+        /* ... omitted here to save space ... */
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎥 YouTube Summarizer</h1>
+            <p>AI-Powered Video Transcription & Summarization (Offline Models)</p>
+        </div>
+
+        <div class="card">
+            <form id="summarizeForm">
+                <div class="input-group">
+                    <label for="url">YouTube Video URL</label>
+                    <input 
+                        type="text"
+                        id="url"
+                        placeholder="https://www.youtube.com/watch?v=..."
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="maxLength">Maximum Summary Length (words)</label>
+                    <input 
+                        type="number"
+                        id="maxLength"
+                        value="150"
+                        min="50"
+                        max="500"
+                    >
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="diarize">
+                    <label for="diarize">Enable Speaker Diarization</label>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">
+                    Generate Summary
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing... This may take several minutes for long videos.</p>
+            </div>
+
+            <div class="error" id="error"></div>
+        </div>
+
+        <div class="card result" id="result">
+            <div class="result-section">
+                <h3>📝 Summary</h3>
+                <div class="summary-text" id="summaryText"></div>
+            </div>
+
+            <div class="result-section">
+                <h3>ℹ️ Video Information</h3>
+                <div class="metadata" id="metadata"></div>
+            </div>
+
+            <div class="result-section">
+                <h3>📄 Full Transcript</h3>
+                <pre class="transcript" id="transcript"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('summarizeForm');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const error = document.getElementById('error');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const url = document.getElementById('url').value.trim();
+            const maxLength = parseInt(document.getElementById('maxLength').value);
+            const diarize = document.getElementById('diarize').checked;
+
+            if (!url) {
+                error.style.display = 'block';
+                error.textContent = "Please enter a YouTube URL.";
+                return;
+            }
+
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            error.style.display = 'none';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url,
+                        max_length: maxLength,  // IMPORTANT FIX
+                        diarize
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.status === 'error') {
+                    throw new Error(data.error || 'Unknown error');
+                }
+
+                document.getElementById('summaryText').textContent = data.summary;
+                document.getElementById('transcript').textContent = data.transcript;
+
+                const md = data.metadata;
+
+                document.getElementById('metadata').innerHTML = `
+                    <div class="metadata-item"><strong>Title</strong> ${md.title || 'N/A'}</div>
+                    <div class="metadata-item"><strong>Duration</strong> ${formatTime(md.duration)}</div>
+                    <div class="metadata-item"><strong>Uploader</strong> ${md.uploader}</div>
+                    <div class="metadata-item"><strong>Processing Time</strong> ${data.duration.toFixed(2)} sec</div>
+                    ${data.speakers ? `
+                        <div class="metadata-item"><strong>Speakers</strong> ${data.speakers.join(', ')}</div>
+                    ` : ''}
+                `;
+
+                loading.style.display = 'none';
+                result.style.display = 'block';
+
+            } catch (err) {
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.textContent = 'Error: ' + err.message;
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            return `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# ===== FILE: docker-compose.yml =====
+version: "3.9"
+
+services:
+  summarizer:
+    build: .
+    container_name: yt_summarizer
+    ports:
+      - "5000:5000"
+    environment:
+      SKIP_MODEL_DOWNLOAD: "true"
+    volumes:
+      - ./models:/app/models
+      - ./outputs:/app/outputs
+      - ./downloads:/app/downloads
+
