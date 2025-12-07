@@ -23,7 +23,7 @@ The system is designed for environments where internet access is restricted or c
 
 ### 2.2 Local Setup
 ```bash
-git clone <your-repo>
+git clone <https://github.com/chinmoymaji08/Offline-YouTube-Video-Summarizer>
 cd Offline-YouTube-Summarizer
 python -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
